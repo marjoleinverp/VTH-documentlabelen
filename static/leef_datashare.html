@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEEF Datashare Zaken - Meierijstad</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: #24515F;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 1.5em; font-weight: 400; margin: 0; }
+        .header a { color: white; text-decoration: none; opacity: 0.8; }
+        .header a:hover { opacity: 1; }
+        .header-nav { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+        .header-nav a {
+            color: white; text-decoration: none; opacity: 0.8;
+            font-size: 0.9em; padding: 4px 12px;
+            border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;
+        }
+        .header-nav a:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
+        .container {
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 0.75em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            min-width: 180px;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #00A9E0;
+        }
+
+        .filter-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #00A9E0;
+            color: white;
+        }
+        .btn-primary:hover { background: #0088b3; }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #d0d0d0; }
+
+        .stats-banner {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+            color: #1565c0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stats-banner .stat-item {
+            display: flex;
+            gap: 5px;
+        }
+
+        .stats-banner .stat-value {
+            font-weight: 600;
+        }
+
+        /* Tabel */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        thead th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        thead th:hover {
+            background: #e9ecef;
+        }
+
+        thead th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.3;
+        }
+
+        thead th.sorted .sort-icon {
+            opacity: 1;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f0f7ff;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        tbody tr:nth-child(even):hover {
+            background: #f0f7ff;
+        }
+
+        tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #eee;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-open {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-gesloten {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        .badge-sub {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge-hoofd {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        /* Paginering */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-top: 1px solid #eee;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 6px 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f0f0f0;
+            border-color: #00A9E0;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #00A9E0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            text-align: center;
+            padding: 40px 20px;
+            color: #c62828;
+            background: #fce4ec;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Detail panel (slide-in) */
+        .detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+        }
+
+        .detail-overlay.active {
+            display: block;
+        }
+
+        .detail-panel {
+            position: fixed;
+            top: 2.5vh;
+            left: 2.5vw;
+            width: 95vw;
+            height: 95vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .detail-panel.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .detail-header {
+            background: #24515F;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .detail-header h2 {
+            font-size: 1.1em;
+            font-weight: 400;
+        }
+
+        .detail-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            opacity: 0.8;
+            padding: 0 4px;
+        }
+
+        .detail-close:hover { opacity: 1; }
+
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h3 {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #24515F;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .detail-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+        }
+
+        .detail-field {
+            margin-bottom: 4px;
+        }
+
+        .detail-field .label {
+            font-size: 0.75em;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .detail-field .value {
+            font-size: 0.9em;
+            color: #333;
+            word-break: break-word;
+        }
+
+        /* Documenten lijst */
+        .doc-list {
+            list-style: none;
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .doc-item:hover {
+            background: #f8fbfd;
+            border-color: #d0e4ec;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .doc-btn {
+            padding: 4px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.78em;
+            font-weight: 500;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .doc-btn:hover {
+            border-color: #00A9E0;
+            color: #00A9E0;
+            background: #f0f7ff;
+        }
+
+        .doc-btn-view {
+            border-color: #00A9E0;
+            color: #00A9E0;
+        }
+
+        .doc-btn-view:hover {
+            background: #00A9E0;
+            color: white;
+        }
+
+        .doc-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .doc-icon.pdf { background: #e53935; }
+        .doc-icon.doc { background: #1565c0; }
+        .doc-icon.xls { background: #2e7d32; }
+        .doc-icon.img { background: #ff8f00; }
+        .doc-icon.other { background: #757575; }
+
+        .doc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doc-name {
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .doc-meta {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        .doc-download {
+            color: #00A9E0;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        /* Subzaken tabel */
+        .sub-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+        }
+
+        .sub-table th {
+            background: #f8f9fa;
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sub-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .empty-state {
+            color: #888;
+            font-size: 0.85em;
+            font-style: italic;
+            padding: 10px 0;
+        }
+
+        .detail-loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        /* Classificatie badges */
+        .classify-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.72em;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .classify-badge-aanvraagformulier { background: #e8f5e9; color: #2e7d32; }
+        .classify-badge-bouwtekening { background: #e3f2fd; color: #1565c0; }
+        .classify-badge-situatieschets { background: #fff3e0; color: #e65100; }
+        .classify-badge-constructieberekening { background: #fce4ec; color: #c62828; }
+        .classify-badge-foto { background: #f3e5f5; color: #7b1fa2; }
+        .classify-badge-rapport { background: #e0f2f1; color: #00695c; }
+        .classify-badge-vergunning { background: #e8eaf6; color: #283593; }
+        .classify-badge-brief { background: #fff8e1; color: #f57f17; }
+        .classify-badge-plattegrond { background: #e1f5fe; color: #0277bd; }
+        .classify-badge-bijlage { background: #f5f5f5; color: #616161; }
+
+        .btn-classify {
+            background: #7b1fa2;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-classify:hover { background: #6a1b9a; }
+
+        .btn-classify:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        .classify-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .classify-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .confidence-bar {
+            display: inline-block;
+            width: 40px;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: #4caf50;
+        }
+
+        /* Status badges for classificatie goedkeuring */
+        .classify-status {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 0.68em;
+            font-weight: 600;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .classify-status-concept {
+            background: transparent;
+            border: 1.5px solid #ff9800;
+            color: #ff9800;
+        }
+
+        .classify-status-goedgekeurd {
+            background: #4caf50;
+            color: white;
+        }
+
+        .classify-status-teruggestuurd {
+            background: #2196f3;
+            color: white;
+        }
+
+        .doc-approve-btn {
+            padding: 3px 8px;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            background: white;
+            color: #4caf50;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 600;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .doc-approve-btn:hover {
+            background: #4caf50;
+            color: white;
+        }
+
+        .doc-approve-btn.approved {
+            background: #4caf50;
+            color: white;
+            cursor: default;
+        }
+
+        .classify-select {
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.75em;
+            max-width: 140px;
+            cursor: pointer;
+        }
+
+        .classify-select:focus {
+            outline: none;
+            border-color: #00A9E0;
+        }
+
+        .btn-approve-all {
+            background: #4caf50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-approve-all:hover { background: #388e3c; }
+
+        .btn-approve-all:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        .classify-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .doc-classify-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 3px;
+            flex-wrap: wrap;
+        }
+
+        /* Classificatie progress bar in overzichtstabel */
+        .class-progress {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.78em;
+            white-space: nowrap;
+        }
+        .class-progress-bar {
+            display: flex;
+            width: 60px;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #e0e0e0;
+        }
+        .class-progress-bar .seg-approved { background: #4caf50; }
+        .class-progress-bar .seg-concept { background: #ff9800; }
+        .class-progress-bar .seg-none { background: #e0e0e0; }
+        .class-done-badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .classify-spinner-inline {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(123,31,162,0.3);
+            border-top-color: #7b1fa2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        /* Classify progress modal */
+        .classify-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .classify-modal-overlay.visible { display: flex; }
+        .classify-modal {
+            background: white;
+            border-radius: 12px;
+            width: 480px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .classify-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #333;
+        }
+        .classify-modal-body {
+            padding: 20px;
+        }
+        .classify-modal-progress {
+            margin-bottom: 16px;
+        }
+        .classify-modal-progress-text {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .classify-modal-progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .classify-modal-progress-fill {
+            height: 100%;
+            background: #00A9E0;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .classify-modal-current {
+            font-size: 0.82em;
+            color: #888;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+        .classify-modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .classify-modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            background: #e0e0e0;
+            color: #555;
+        }
+        .classify-modal-btn:hover { background: #d0d0d0; }
+        .classify-modal-btn-done {
+            background: #4caf50;
+            color: white;
+        }
+        .classify-modal-btn-done:hover { background: #388e3c; }
+
+        /* Zaakgegevens horizontal bar */
+        .zaakgegevens-bar {
+            background: #f0f7fa;
+            border-bottom: 1px solid #d0e4ec;
+            padding: 10px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 24px;
+            flex-shrink: 0;
+            font-size: 0.82em;
+            color: #333;
+        }
+        .zaakgegevens-bar .zg-field {
+            display: flex;
+            gap: 4px;
+        }
+        .zaakgegevens-bar .zg-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .zaakgegevens-bar .zg-value {
+            color: #24515F;
+        }
+        .zaakgegevens-bar .zg-pill {
+            background: #24515F;
+            color: white;
+            padding: 1px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Detail toolbar */
+        .detail-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+            flex-shrink: 0;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .detail-toolbar-left,
+        .detail-toolbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Toolbar buttons */
+        .btn-toolbar {
+            padding: 7px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.84em;
+            font-weight: 600;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            color: #333;
+        }
+        .btn-toolbar:hover {
+            border-color: #00A9E0;
+            color: #00A9E0;
+            background: #f0f7ff;
+        }
+        .btn-toolbar-primary {
+            background: #7b1fa2;
+            color: white;
+            border-color: #7b1fa2;
+        }
+        .btn-toolbar-primary:hover {
+            background: #6a1b9a;
+            border-color: #6a1b9a;
+            color: white;
+        }
+        .btn-toolbar-primary:disabled {
+            background: #bdbdbd;
+            border-color: #bdbdbd;
+            cursor: not-allowed;
+        }
+        .btn-toolbar-approve {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+        .btn-toolbar-approve:hover {
+            background: #388e3c;
+            border-color: #388e3c;
+            color: white;
+        }
+        .btn-toolbar-approve:disabled {
+            background: #bdbdbd;
+            border-color: #bdbdbd;
+            cursor: not-allowed;
+        }
+        .btn-toolbar-link {
+            background: transparent;
+            border-color: transparent;
+            color: #00A9E0;
+            padding: 7px 12px;
+        }
+        .btn-toolbar-link:hover {
+            background: #f0f7ff;
+            border-color: #e0e0e0;
+            color: #0088b3;
+        }
+
+        /* Detail content wrapper */
+        .detail-content {
+            padding: 20px;
+        }
+
+        /* Document preview toggle */
+        .doc-preview-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.84em;
+            color: #555;
+            cursor: pointer;
+            user-select: none;
+        }
+        .doc-preview-toggle input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Document preview container */
+        .doc-preview-container {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafafa;
+            min-height: 60px;
+            overflow: hidden;
+        }
+        .doc-preview-container.visible {
+            display: block;
+        }
+        .doc-preview-container iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+        }
+        .doc-preview-container img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .doc-preview-placeholder {
+            padding: 16px;
+            text-align: center;
+            color: #888;
+            font-size: 0.85em;
+        }
+        .doc-preview-load-btn {
+            padding: 6px 14px;
+            border: 1px solid #00A9E0;
+            border-radius: 4px;
+            background: white;
+            color: #00A9E0;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .doc-preview-load-btn:hover {
+            background: #00A9E0;
+            color: white;
+        }
+        .doc-preview-load-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive: full viewport on small screens */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 3000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+
+        .btn-toolbar-leef {
+            background: #1565c0;
+            color: white;
+            border-color: #1565c0;
+        }
+        .btn-toolbar-leef:hover {
+            background: #0d47a1;
+            border-color: #0d47a1;
+            color: white;
+        }
+        .btn-toolbar-leef:disabled {
+            background: #bdbdbd;
+            border-color: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 900px) {
+            .detail-panel {
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+            .detail-header {
+                border-radius: 0;
+            }
+            .zaakgegevens-bar {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .detail-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .detail-toolbar-left,
+            .detail-toolbar-right {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LEEF Datashare Zaken</h1>
+        <nav class="header-nav">
+            <a href="/static/classificatie_beheer.html">Classificaties</a>
+            <a href="/static/classificatie_prompts.html">Prompts</a>
+            <a href="/static/classificatie_feedback.html">Feedback</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Zoeken</label>
+                <input type="text" id="filterZoek" placeholder="Intern kenmerk, omschrijving...">
+            </div>
+            <div class="filter-group">
+                <label>Zaaktype</label>
+                <select id="filterZaaktype">
+                    <option value="">Alle zaaktypes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Hoofd/Sub</label>
+                <select id="filterHoofdSub">
+                    <option value="">Alles</option>
+                    <option value="hoofd">Hoofd</option>
+                    <option value="sub">Sub</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+                <button class="btn btn-primary" onclick="fetchAllZaken()">Vernieuwen</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-banner" id="statsBanner" style="display:none;">
+            <div class="stat-item">Totaal: <span class="stat-value" id="statTotal">0</span></div>
+            <div class="stat-item">Pagina: <span class="stat-value" id="statPage">1</span></div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loadingState">
+            <div class="loading-spinner"></div>
+            <p style="margin-top:12px;">Zaken laden...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-msg" id="errorState" style="display:none;"></div>
+
+        <!-- Tabel -->
+        <div class="table-container" id="tableContainer" style="display:none;">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-sort="intern_kenmerk">Intern kenmerk <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="zaak_omschrijving">Zaak omschrijving <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="zaaktype">Zaaktype <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="hoofd_of_sub">Hoofd/Sub <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="product">Product <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="datum_aanvraag">Datum aanvraag <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="datum_fataal">Datum fataal <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="besluit">Besluit <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="status">Status <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="doc_count">Docs <span class="sort-icon">&#8597;</span></th>
+                            <th data-sort="class_approved">Classificatie <span class="sort-icon">&#8597;</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="zakenBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <span id="paginationInfo">Pagina 1</span>
+                <div class="pagination-buttons">
+                    <button id="btnPrev" onclick="prevPage()" disabled>&larr; Vorige</button>
+                    <button id="btnNext" onclick="nextPage()">Volgende &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+            <h2 id="detailTitle">Zaak detail</h2>
+            <button class="detail-close" onclick="closeDetail()">&times;</button>
+        </div>
+        <div class="detail-body" id="detailBody">
+            <div class="detail-loading">
+                <div class="loading-spinner"></div>
+                <p style="margin-top:12px;">Detail laden...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classify progress modal -->
+    <div class="classify-modal-overlay" id="classifyModal">
+        <div class="classify-modal">
+            <div class="classify-modal-header" id="classifyModalTitle">Documenten classificeren</div>
+            <div class="classify-modal-body">
+                <div class="classify-modal-progress">
+                    <div class="classify-modal-progress-text" id="classifyModalText">Voorbereiden...</div>
+                    <div class="classify-modal-progress-bar">
+                        <div class="classify-modal-progress-fill" id="classifyModalFill" style="width:0%"></div>
+                    </div>
+                </div>
+                <div class="classify-modal-current" id="classifyModalCurrent"></div>
+            </div>
+            <div class="classify-modal-footer">
+                <button class="classify-modal-btn" id="classifyModalBtn" onclick="closeClassifyModal()">Sluiten</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let currentPage = 1;
+        const pageSize = 50;
+        let allZaken = [];       // Alle zaken van API (ongefilterd)
+        let filteredZaken = [];  // Na filters
+        let sortColumn = null;
+        let sortAsc = true;
+        let zaaktypes = new Set();
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAllZaken();
+            setupSorting();
+            setupKeyboard();
+
+            document.getElementById('filterZoek').addEventListener('input', applyFilters);
+            document.getElementById('filterZaaktype').addEventListener('change', applyFilters);
+            document.getElementById('filterHoofdSub').addEventListener('change', applyFilters);
+        });
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeDetail();
+            });
+        }
+
+        function setupSorting() {
+            document.querySelectorAll('thead th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sort;
+                    if (sortColumn === col) {
+                        sortAsc = !sortAsc;
+                    } else {
+                        sortColumn = col;
+                        sortAsc = true;
+                    }
+                    document.querySelectorAll('thead th').forEach(t => t.classList.remove('sorted'));
+                    th.classList.add('sorted');
+                    th.querySelector('.sort-icon').innerHTML = sortAsc ? '&#9650;' : '&#9660;';
+                    renderTable();
+                });
+            });
+        }
+
+        async function fetchAllZaken() {
+            showLoading();
+
+            try {
+                const resp = await fetch('/geo/leef-datashare/zaken');
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${resp.status}`);
+                }
+                const data = await resp.json();
+
+                allZaken = data.items || [];
+
+                // Populate zaaktype filter vanuit alle data
+                zaaktypes.clear();
+                allZaken.forEach(z => {
+                    if (z.zaaktype) zaaktypes.add(z.zaaktype);
+                });
+                populateZaaktypeFilter();
+
+                applyFilters();
+                showTable();
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function applyFilters() {
+            const zoek = document.getElementById('filterZoek').value.trim().toLowerCase();
+            const zaaktype = document.getElementById('filterZaaktype').value;
+            const hoofdSub = document.getElementById('filterHoofdSub').value;
+
+            filteredZaken = allZaken.filter(z => {
+                if (zoek) {
+                    const match = [z.intern_kenmerk, z.zaak_omschrijving, z.zaaktype, z.product]
+                        .some(v => String(v || '').toLowerCase().includes(zoek));
+                    if (!match) return false;
+                }
+                if (zaaktype && z.zaaktype !== zaaktype) return false;
+                if (hoofdSub && z.hoofd_of_sub !== hoofdSub) return false;
+                return true;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function populateZaaktypeFilter() {
+            const select = document.getElementById('filterZaaktype');
+            const current = select.value;
+            const sorted = Array.from(zaaktypes).sort();
+            select.innerHTML = '<option value="">Alle zaaktypes</option>';
+            sorted.forEach(zt => {
+                const opt = document.createElement('option');
+                opt.value = zt;
+                opt.textContent = zt;
+                if (zt === current) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('zakenBody');
+            let items = [...filteredZaken];
+
+            // Sort
+            if (sortColumn) {
+                items.sort((a, b) => {
+                    let va, vb;
+                    if (sortColumn === 'doc_count') {
+                        va = a._doc_count !== undefined ? a._doc_count : (Array.isArray(a.documenten) ? a.documenten.length : 0);
+                        vb = b._doc_count !== undefined ? b._doc_count : (Array.isArray(b.documenten) ? b.documenten.length : 0);
+                    } else if (sortColumn === 'class_approved') {
+                        va = a._approved_count || 0;
+                        vb = b._approved_count || 0;
+                    } else {
+                        va = a[sortColumn] ?? '';
+                        vb = b[sortColumn] ?? '';
+                        if (typeof va === 'string') va = va.toLowerCase();
+                        if (typeof vb === 'string') vb = vb.toLowerCase();
+                    }
+                    if (va < vb) return sortAsc ? -1 : 1;
+                    if (va > vb) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            // Client-side paginering
+            const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+            if (currentPage > totalPages) currentPage = totalPages;
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageItems = items.slice(startIdx, startIdx + pageSize);
+
+            tbody.innerHTML = pageItems.map(z => `
+                <tr onclick="openDetail('${z.id}')">
+                    <td>${esc(z.intern_kenmerk || '')}</td>
+                    <td title="${esc(z.zaak_omschrijving || '')}">${esc(z.zaak_omschrijving || '')}</td>
+                    <td>${esc(z.zaaktype || '')}</td>
+                    <td>${hoofdSubBadge(z.hoofd_of_sub)}</td>
+                    <td>${esc(z.product || '')}</td>
+                    <td>${formatDate(z.datum_aanvraag)}</td>
+                    <td>${formatDate(z.datum_fataal)}</td>
+                    <td>${esc(z.besluit || '')}</td>
+                    <td>${statusBadge(z.status)}</td>
+                    <td>${docCountBadge(z)}</td>
+                    <td>${classProgressBadge(z)}</td>
+                </tr>
+            `).join('');
+
+            // Stats
+            document.getElementById('statTotal').textContent = items.length;
+            document.getElementById('statPage').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('statsBanner').style.display = 'flex';
+
+            // Pagination
+            document.getElementById('btnPrev').disabled = currentPage <= 1;
+            document.getElementById('btnNext').disabled = currentPage >= totalPages;
+            document.getElementById('paginationInfo').textContent = `Pagina ${currentPage} van ${totalPages} (${items.length} zaken)`;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterZoek').value = '';
+            document.getElementById('filterZaaktype').value = '';
+            document.getElementById('filterHoofdSub').value = '';
+            currentPage = 1;
+            sortColumn = null;
+            sortAsc = true;
+            document.querySelectorAll('thead th').forEach(t => {
+                t.classList.remove('sorted');
+                t.querySelector('.sort-icon').innerHTML = '&#8597;';
+            });
+            applyFilters();
+        }
+
+        // Detail panel
+        async function openDetail(zaakId) {
+            const overlay = document.getElementById('detailOverlay');
+            const panel = document.getElementById('detailPanel');
+            const body = document.getElementById('detailBody');
+
+            overlay.classList.add('active');
+            // Trigger animation in next frame
+            requestAnimationFrame(() => panel.classList.add('active'));
+
+            body.innerHTML = `
+                <div class="detail-loading">
+                    <div class="loading-spinner"></div>
+                    <p style="margin-top:12px;">Detail laden...</p>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}`);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const zaak = await resp.json();
+
+                document.getElementById('detailTitle').textContent = zaak.intern_kenmerk || 'Zaak detail';
+                renderDetail(zaak);
+            } catch (err) {
+                body.innerHTML = `<div class="error-msg">Kon zaak niet laden: ${esc(err.message)}</div>`;
+            }
+        }
+
+        // Classificatie state per zaak
+        let currentZaakClassificaties = {}; // doc_id -> {code, label, confidence, status}
+        let currentZaakId = null;
+        let allClassificatieCodes = []; // Alle beschikbare codes voor dropdown
+
+        // Laad classificatie-codes voor dropdown
+        async function loadClassificatieCodes() {
+            if (allClassificatieCodes.length > 0) return;
+            try {
+                const resp = await fetch('/geo/leef-datashare/classificaties');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                allClassificatieCodes = data.items || [];
+            } catch (e) { /* stille fout */ }
+        }
+
+        function renderDetail(zaak) {
+            const body = document.getElementById('detailBody');
+            currentZaakId = zaak.id;
+            currentZaakClassificaties = {};
+
+            const fields = [
+                ['Kenmerk', zaak.intern_kenmerk],
+                ['Omschrijving', zaak.zaak_omschrijving],
+                ['Zaaktype', zaak.zaaktype, 'pill'],
+                ['Hoofd/Sub', zaak.hoofd_of_sub],
+                ['Product', zaak.product],
+                ['Aanvraag', formatDate(zaak.datum_aanvraag)],
+                ['Fataal', formatDate(zaak.datum_fataal)],
+                ['Besluit', zaak.besluit],
+                ['Status', zaak.status],
+                ['Behandelaar', zaak.behandelaar],
+                ['Aanvrager', zaak.aanvrager],
+                ['Locatie', zaak.locatie],
+            ].filter(([, v]) => v !== undefined && v !== null && v !== '');
+
+            const documenten = zaak.documenten || [];
+            const subzaken = zaak.subzaken || [];
+
+            body.innerHTML = `
+                <div class="zaakgegevens-bar">
+                    ${fields.map(([label, value, style]) => `
+                        <div class="zg-field">
+                            <span class="zg-label">${esc(label)}:</span>
+                            ${style === 'pill'
+                                ? `<span class="zg-pill">${esc(String(value))}</span>`
+                                : `<span class="zg-value">${esc(String(value))}</span>`
+                            }
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${documenten.length > 0 ? `
+                <div class="detail-toolbar">
+                    <div class="detail-toolbar-left">
+                        <button class="btn-toolbar btn-toolbar-primary" id="btnClassifyAll" onclick="classificeerAlleDocumenten('${zaak.id}')">
+                            Classificeer documenten
+                        </button>
+                        <button class="btn-toolbar btn-toolbar-approve" id="btnApproveAll" onclick="goedkeurAlles('${zaak.id}')" style="display:none;">
+                            Alles goedkeuren
+                        </button>
+                    </div>
+                    <div class="detail-toolbar-right">
+                        <button class="btn-toolbar btn-toolbar-leef" id="btnSendLeef" onclick="verstuurNaarLeef('${zaak.id}')" title="Handmatig labels naar LEEF versturen (retry)">
+                            Verstuur naar LEEF
+                        </button>
+                        <a class="btn-toolbar btn-toolbar-link" href="/static/classificatie_review.html?zaak_id=${zaak.id}" target="_blank">
+                            Review classificaties &rarr;
+                        </a>
+                        <a class="btn-toolbar btn-toolbar-link" href="/static/classificatie_feedback.html" target="_blank">
+                            Feedback overzicht
+                        </a>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="detail-content">
+                    <div class="detail-section">
+                        <div class="classify-header">
+                            <h3>Documenten (${documenten.length})</h3>
+                            ${documenten.length > 0 ? `
+                                <label class="doc-preview-toggle">
+                                    <input type="checkbox" onchange="toggleDocumentPreviews(this.checked)">
+                                    Toon voorbeelden
+                                </label>
+                            ` : ''}
+                        </div>
+                        ${documenten.length === 0
+                            ? '<div class="empty-state">Geen documenten gevonden</div>'
+                            : `<ul class="doc-list">
+                                ${documenten.map(doc => `
+                                    <div class="doc-item" id="doc-item-${doc.id}">
+                                        <div class="doc-icon ${getDocIconClass(doc.mime_type)}">${getDocIconLabel(doc.mime_type)}</div>
+                                        <div class="doc-info">
+                                            <div class="doc-name">${esc(doc.naam || doc.name || 'Document')}</div>
+                                            <div class="doc-meta">${esc(doc.mime_type || '')} &middot; LEEF #${doc.id}</div>
+                                            <div class="doc-classify-row" id="doc-badge-${doc.id}"></div>
+                                            <div class="doc-preview-container" id="doc-preview-${doc.id}" data-doc-id="${doc.id}" data-mime="${esc(doc.mime_type || '')}">
+                                                <div class="doc-preview-placeholder">
+                                                    <button class="doc-preview-load-btn" onclick="loadSinglePreview('${doc.id}'); event.stopPropagation();">Laden</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="doc-actions">
+                                            ${isViewable(doc.mime_type) ? `<a class="doc-btn doc-btn-view" href="/geo/leef-datashare/documenten/${doc.id}?inline=true" target="_blank" onclick="event.stopPropagation();">Bekijk</a>` : ''}
+                                            <a class="doc-btn" href="/geo/leef-datashare/documenten/${doc.id}" target="_blank" onclick="event.stopPropagation();">Download</a>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </ul>`
+                        }
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>Subzaken (${subzaken.length})</h3>
+                        ${subzaken.length === 0
+                            ? '<div class="empty-state">Geen subzaken</div>'
+                            : `<table class="sub-table">
+                                <thead>
+                                    <tr>
+                                        <th>Intern kenmerk</th>
+                                        <th>Zaaktype</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${subzaken.map(sub => `
+                                        <tr style="cursor:pointer;" onclick="openDetail('${sub.id}')">
+                                            <td>${esc(sub.intern_kenmerk || '')}</td>
+                                            <td>${esc(sub.zaaktype || '')}</td>
+                                            <td>${statusBadge(sub.status)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>`
+                        }
+                    </div>
+                </div>
+            `;
+
+            // Laad classificatie-codes en bestaande classificaties
+            loadClassificatieCodes();
+            loadExistingClassificaties(zaak.id);
+        }
+
+        async function loadExistingClassificaties(zaakId) {
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificaties`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                let hasConcepten = false;
+
+                // Multi-label: groepeer per document via documenten array
+                if (data.documenten) {
+                    data.documenten.forEach(doc => {
+                        currentZaakClassificaties[doc.document_id] = doc.labels;
+                        showClassifyBadges(doc.document_id, doc.labels);
+                        if (doc.labels.some(l => (l.status || 'concept') === 'concept')) hasConcepten = true;
+                    });
+                } else {
+                    // Fallback: flat classificaties list, groepeer per doc_id
+                    const byDoc = {};
+                    (data.classificaties || []).forEach(c => {
+                        if (!byDoc[c.document_id]) byDoc[c.document_id] = [];
+                        byDoc[c.document_id].push(c);
+                        if ((c.status || 'concept') === 'concept') hasConcepten = true;
+                    });
+                    Object.entries(byDoc).forEach(([docId, labels]) => {
+                        currentZaakClassificaties[docId] = labels;
+                        showClassifyBadges(docId, labels);
+                    });
+                }
+
+                // Toon "Alles goedkeuren" knop als er concepten zijn
+                const btnApprove = document.getElementById('btnApproveAll');
+                if (btnApprove) {
+                    btnApprove.style.display = hasConcepten ? 'flex' : 'none';
+                }
+            } catch (e) {
+                // Stille fout - classificaties zijn optioneel
+            }
+        }
+
+        function showClassifyBadges(docId, labels) {
+            const el = document.getElementById(`doc-badge-${docId}`);
+            if (!el) return;
+            if (!labels || labels.length === 0) {
+                el.innerHTML = '';
+                return;
+            }
+
+            // Bepaal of alle labels goedgekeurd zijn
+            const allApproved = labels.every(l => l.status === 'goedgekeurd');
+            const hasConcepten = labels.some(l => (l.status || 'concept') === 'concept');
+
+            // Badges voor elke label
+            const badgesHtml = labels.map(l => {
+                const code = l.classificatie_code || 'bijlage';
+                const label = l.classificatie_label || code;
+                const st = l.status || 'concept';
+                const statusLabel = st === 'goedgekeurd' ? '\u2713' : '';
+                const statusClass = `classify-status classify-status-${st}`;
+                return `<span class="classify-badge classify-badge-${esc(code)}">${esc(label)}</span><span class="${statusClass}">${statusLabel || st}</span>`;
+            }).join(' ');
+
+            // Confidence (gebruik eerste label)
+            const confPct = Math.round((labels[0].confidence || 0) * 100);
+
+            // Goedkeur-knop per document
+            let approveHtml = '';
+            if (hasConcepten) {
+                approveHtml = `<button class="doc-approve-btn" onclick="goedkeurDocument(${docId}); event.stopPropagation();" title="Goedkeuren">\u2713</button>`;
+            } else if (allApproved) {
+                approveHtml = `<span class="doc-approve-btn approved" title="Goedgekeurd">\u2713</span>`;
+            }
+
+            // Herclassificeer-knop per document
+            const reclassifyHtml = `<button class="doc-btn" style="font-size:0.7em;padding:2px 6px;" onclick="herclassificeerDocument(${docId}); event.stopPropagation();" title="Opnieuw classificeren" id="btn-reclass-${docId}">Herclassificeer</button>`;
+
+            el.innerHTML = `
+                ${badgesHtml}
+                <span class="confidence-bar"><span class="confidence-fill" style="width:${confPct}%;"></span></span>
+                ${approveHtml}
+                ${reclassifyHtml}
+            `;
+        }
+
+        // Backward compat wrapper
+        function showClassifyBadge(docId, code, label, confidence, status) {
+            showClassifyBadges(docId, [{
+                classificatie_code: code,
+                classificatie_label: label,
+                confidence: confidence,
+                status: status,
+            }]);
+        }
+
+
+        let _classifyAbort = false;
+
+        async function classificeerAlleDocumenten(zaakId) {
+            const btn = document.getElementById('btnClassifyAll');
+            if (!btn) return;
+            btn.disabled = true;
+
+            // Bepaal welke documenten nog niet geclassificeerd zijn
+            const docItems = document.querySelectorAll('[id^="doc-item-"]');
+            const allDocIds = [];
+            docItems.forEach(el => {
+                const id = el.id.replace('doc-item-', '');
+                allDocIds.push(id);
+            });
+
+            // Filter: skip documenten die al een classificatie hebben
+            const todoDocIds = allDocIds.filter(id => !currentZaakClassificaties[id] || (Array.isArray(currentZaakClassificaties[id]) && currentZaakClassificaties[id].length === 0));
+            const totalTodo = todoDocIds.length;
+
+            if (totalTodo === 0) {
+                btn.textContent = 'Alle documenten al geclassificeerd';
+                btn.style.background = '#4caf50';
+                setTimeout(() => {
+                    btn.textContent = 'Classificeer documenten';
+                    btn.style.background = '';
+                    btn.disabled = false;
+                }, 2000);
+                return;
+            }
+
+            // Open modal
+            _classifyAbort = false;
+            const modal = document.getElementById('classifyModal');
+            const modalText = document.getElementById('classifyModalText');
+            const modalFill = document.getElementById('classifyModalFill');
+            const modalCurrent = document.getElementById('classifyModalCurrent');
+            const modalBtn = document.getElementById('classifyModalBtn');
+            const modalTitle = document.getElementById('classifyModalTitle');
+
+            modalTitle.textContent = `Documenten classificeren (${totalTodo} te doen)`;
+            modalText.textContent = `0 / ${totalTodo} geclassificeerd`;
+            modalFill.style.width = '0%';
+            modalCurrent.textContent = 'Starten...';
+            modalBtn.textContent = 'Annuleren';
+            modalBtn.className = 'classify-modal-btn';
+            modalBtn.onclick = () => { _classifyAbort = true; };
+            modal.classList.add('visible');
+
+            let done = 0;
+            let errors = 0;
+
+            for (const docId of todoDocIds) {
+                if (_classifyAbort) break;
+
+                // Zoek document naam
+                const docEl = document.querySelector(`#doc-item-${docId} .doc-name`);
+                const docNaam = docEl ? docEl.textContent : `Document ${docId}`;
+                modalCurrent.textContent = `Bezig: ${docNaam}`;
+
+                try {
+                    const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificeer/${docId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const result = await resp.json();
+
+                    // Update badge direct
+                    const codes = result.classificatie_codes || [result.classificatie_code];
+                    const labels = result.classificatie_labels || [result.classificatie_label];
+                    const labelObjs = codes.map((code, i) => ({
+                        classificatie_code: code,
+                        classificatie_label: labels[i] || code,
+                        confidence: result.confidence,
+                        status: 'concept',
+                    }));
+                    currentZaakClassificaties[docId] = labelObjs;
+                    showClassifyBadges(docId, labelObjs);
+
+                    done++;
+                } catch (err) {
+                    errors++;
+                    done++;
+                    console.error(`Classificatie fout voor doc ${docId}:`, err);
+                }
+
+                // Update progress
+                const pct = Math.round((done / totalTodo) * 100);
+                modalText.textContent = `${done} / ${totalTodo} geclassificeerd${errors ? ` (${errors} fouten)` : ''}`;
+                modalFill.style.width = pct + '%';
+            }
+
+            // Klaar
+            modalCurrent.textContent = _classifyAbort ? 'Geannuleerd' : 'Klaar!';
+            modalFill.style.width = '100%';
+            modalFill.style.background = _classifyAbort ? '#ff9800' : '#4caf50';
+            modalBtn.textContent = 'Sluiten';
+            modalBtn.className = 'classify-modal-btn classify-modal-btn-done';
+            modalBtn.onclick = () => closeClassifyModal();
+
+            // Herlaad classificatie badges
+            _leefZakenCacheDirty = true;
+            currentZaakClassificaties = {};
+            await loadExistingClassificaties(zaakId);
+
+            btn.textContent = 'Classificeer documenten';
+            btn.style.background = '';
+            btn.disabled = false;
+
+            // Toon "Alles goedkeuren" knop
+            const hasConcepten = Object.values(currentZaakClassificaties).some(val => {
+                if (Array.isArray(val)) return val.some(l => (l.status || 'concept') === 'concept');
+                return true;
+            });
+            const btnApprove = document.getElementById('btnApproveAll');
+            if (btnApprove) btnApprove.style.display = hasConcepten ? 'flex' : 'none';
+        }
+
+        function closeClassifyModal() {
+            document.getElementById('classifyModal').classList.remove('visible');
+            // Reset progress bar color
+            document.getElementById('classifyModalFill').style.background = '#00A9E0';
+        }
+
+        let _leefZakenCacheDirty = false;
+
+        async function goedkeurAlles(zaakId) {
+            const btn = document.getElementById('btnApproveAll');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.textContent = 'Goedkeuren...';
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificaties/goedkeuren`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alle: true }),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const respData = await resp.json();
+
+                // Update alle badges naar goedgekeurd
+                Object.keys(currentZaakClassificaties).forEach(docId => {
+                    const labels = currentZaakClassificaties[docId];
+                    if (Array.isArray(labels)) {
+                        labels.forEach(l => { if ((l.status || 'concept') === 'concept') l.status = 'goedgekeurd'; });
+                        showClassifyBadges(docId, labels);
+                    } else if (labels && (labels.status || 'concept') === 'concept') {
+                        labels.status = 'goedgekeurd';
+                        showClassifyBadge(docId, labels.classificatie_code, labels.classificatie_label, labels.confidence, 'goedgekeurd');
+                    }
+                });
+
+                // LEEF labels feedback
+                const leefResult = respData.leef_labels;
+                if (leefResult && leefResult.success && leefResult.success.length > 0 && leefResult.failed.length === 0) {
+                    showToast('Alles goedgekeurd en labels naar LEEF verstuurd!');
+                } else if (leefResult && leefResult.failed && leefResult.failed.length > 0) {
+                    showToast('Alles goedgekeurd! Labels naar LEEF versturen deels mislukt.');
+                } else {
+                    showToast('Alles goedgekeurd!');
+                }
+
+                _leefZakenCacheDirty = true;
+                btn.textContent = 'Alles goedgekeurd!';
+                btn.style.background = '#2e7d32';
+                setTimeout(() => {
+                    btn.style.display = 'none';
+                    btn.style.background = '';
+                    btn.disabled = false;
+                    btn.textContent = 'Alles goedkeuren';
+                }, 2000);
+            } catch (err) {
+                btn.textContent = 'Goedkeuren mislukt';
+                btn.style.background = '#e53935';
+                setTimeout(() => {
+                    btn.textContent = 'Alles goedkeuren';
+                    btn.style.background = '';
+                    btn.disabled = false;
+                }, 3000);
+                console.error('Goedkeuren fout:', err);
+            }
+        }
+
+        async function goedkeurDocument(docId) {
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${currentZaakId}/classificaties/goedkeuren`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ document_ids: [docId] }),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const respData = await resp.json();
+
+                const labels = currentZaakClassificaties[docId];
+                if (Array.isArray(labels)) {
+                    labels.forEach(l => l.status = 'goedgekeurd');
+                    showClassifyBadges(docId, labels);
+                } else if (labels) {
+                    labels.status = 'goedgekeurd';
+                    showClassifyBadge(docId, labels.classificatie_code, labels.classificatie_label, labels.confidence, 'goedgekeurd');
+                }
+
+                _leefZakenCacheDirty = true;
+
+                // LEEF labels feedback
+                const leefResult = respData.leef_labels;
+                if (leefResult && leefResult.success && leefResult.success.length > 0 && leefResult.failed.length === 0) {
+                    showToast('Goedgekeurd en labels naar LEEF verstuurd!');
+                } else if (leefResult && leefResult.failed && leefResult.failed.length > 0) {
+                    showToast('Goedgekeurd! Labels naar LEEF versturen mislukt.');
+                }
+
+                // Check of er nog concepten zijn
+                const hasConcepten = Object.values(currentZaakClassificaties).some(val => {
+                    if (Array.isArray(val)) return val.some(l => (l.status || 'concept') === 'concept');
+                    return (val.status || 'concept') === 'concept';
+                });
+                const btnApprove = document.getElementById('btnApproveAll');
+                if (btnApprove && !hasConcepten) btnApprove.style.display = 'none';
+            } catch (err) {
+                console.error('Goedkeuren fout:', err);
+            }
+        }
+
+        async function herclassificeerDocument(docId) {
+            const btn = document.getElementById(`btn-reclass-${docId}`);
+            if (btn) { btn.disabled = true; btn.textContent = 'Bezig...'; }
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${currentZaakId}/classificeer/${docId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const result = await resp.json();
+
+                // Update badges
+                const codes = result.classificatie_codes || [result.classificatie_code];
+                const labels = result.classificatie_labels || [result.classificatie_label];
+                const labelObjs = codes.map((code, i) => ({
+                    classificatie_code: code,
+                    classificatie_label: labels[i] || code,
+                    confidence: result.confidence,
+                    status: 'concept',
+                }));
+                currentZaakClassificaties[docId] = labelObjs;
+                showClassifyBadges(docId, labelObjs);
+                _leefZakenCacheDirty = true;
+
+                // Toon "Alles goedkeuren" knop
+                const btnApprove = document.getElementById('btnApproveAll');
+                if (btnApprove) btnApprove.style.display = 'flex';
+
+                showToast('Document opnieuw geclassificeerd');
+            } catch (err) {
+                showToast('Herclassificatie mislukt: ' + err.message);
+                if (btn) { btn.disabled = false; btn.textContent = 'Herclassificeer'; }
+            }
+        }
+
+        async function verstuurNaarLeef(zaakId) {
+            const btn = document.getElementById('btnSendLeef');
+            if (!btn) return;
+            const prevText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Versturen...';
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/labels/verstuur`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                const result = data.leef_labels || {};
+                const successCount = (result.success || []).length;
+                const failedCount = (result.failed || []).length;
+
+                if (successCount === 0 && failedCount === 0) {
+                    showToast('Geen documenten om te versturen naar LEEF');
+                } else if (failedCount === 0) {
+                    showToast(`${successCount} document(en) naar LEEF verstuurd!`);
+                } else {
+                    showToast(`${successCount} verstuurd, ${failedCount} mislukt`);
+                }
+
+                btn.textContent = prevText;
+                btn.disabled = false;
+            } catch (err) {
+                showToast('Versturen naar LEEF mislukt: ' + err.message);
+                btn.textContent = prevText;
+                btn.disabled = false;
+            }
+        }
+
+        async function wijzigClassificatie(docId, newCode) {
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${currentZaakId}/classificaties/${docId}/wijzig`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ classificatie_codes: [newCode] }),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+                // Update lokale state (multi-label)
+                const cat = allClassificatieCodes.find(x => x.code === newCode);
+                const newLabel = {
+                    classificatie_code: newCode,
+                    classificatie_label: cat ? cat.label : newCode,
+                    confidence: 1.0,
+                    status: 'goedgekeurd',
+                };
+                currentZaakClassificaties[docId] = [newLabel];
+                showClassifyBadges(docId, [newLabel]);
+
+                // Check of er nog concepten zijn
+                const hasConcepten = Object.values(currentZaakClassificaties).some(val => {
+                    if (Array.isArray(val)) return val.some(l => (l.status || 'concept') === 'concept');
+                    return (val.status || 'concept') === 'concept';
+                });
+                const btnApprove = document.getElementById('btnApproveAll');
+                if (btnApprove && !hasConcepten) btnApprove.style.display = 'none';
+            } catch (err) {
+                console.error('Wijzig classificatie fout:', err);
+            }
+        }
+
+        function toggleDocumentPreviews(enabled) {
+            const containers = document.querySelectorAll('.doc-preview-container');
+            containers.forEach(container => {
+                if (enabled) {
+                    container.classList.add('visible');
+                } else {
+                    container.classList.remove('visible');
+                }
+            });
+        }
+
+        function loadSinglePreview(docId) {
+            const container = document.getElementById(`doc-preview-${docId}`);
+            if (!container) return;
+
+            const mime = container.dataset.mime || '';
+            const btn = container.querySelector('.doc-preview-load-btn');
+
+            // Disable button to prevent double-clicks
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Laden...';
+            }
+
+            const url = `/geo/leef-datashare/documenten/${docId}?inline=true`;
+
+            if (mime.includes('pdf')) {
+                container.innerHTML = `<iframe src="${url}" title="Document preview"></iframe>`;
+            } else if (mime.startsWith('image/')) {
+                container.innerHTML = `<img src="${url}" alt="Document preview">`;
+            } else {
+                container.innerHTML = `<div class="doc-preview-placeholder">Geen preview beschikbaar voor dit bestandstype (${esc(mime)})</div>`;
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('active');
+            document.getElementById('detailOverlay').classList.remove('active');
+            // Herlaad tabel als er wijzigingen zijn geweest
+            if (_leefZakenCacheDirty) {
+                _leefZakenCacheDirty = false;
+                fetchAllZaken();
+            }
+        }
+
+        // Helpers
+        function showLoading() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'none';
+        }
+
+        function showTable() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+        }
+
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorState').textContent = 'Fout bij laden: ' + msg;
+            document.getElementById('tableContainer').style.display = 'none';
+        }
+
+        function esc(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDate(val) {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                if (isNaN(d.getTime())) return esc(String(val));
+                return d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch {
+                return esc(String(val));
+            }
+        }
+
+        function statusBadge(status) {
+            if (!status) return '';
+            const s = String(status).toLowerCase();
+            if (s === 'open' || s === 'lopend') {
+                return `<span class="badge badge-open">${esc(status)}</span>`;
+            }
+            if (s === 'gesloten' || s === 'afgerond' || s === 'afgesloten') {
+                return `<span class="badge badge-gesloten">${esc(status)}</span>`;
+            }
+            return `<span class="badge" style="background:#f5f5f5;color:#555;">${esc(status)}</span>`;
+        }
+
+        function hoofdSubBadge(val) {
+            if (!val) return '';
+            const v = String(val).toLowerCase();
+            if (v === 'hoofd') return `<span class="badge badge-hoofd">${esc(val)}</span>`;
+            if (v === 'sub') return `<span class="badge badge-sub">${esc(val)}</span>`;
+            return esc(val);
+        }
+
+        function docCountBadge(zaak) {
+            // Gebruik _doc_count (van backend verrijking) of val terug op documenten array
+            const count = zaak._doc_count !== undefined ? zaak._doc_count
+                : (Array.isArray(zaak.documenten) ? zaak.documenten.length : 0);
+            if (count === 0) return '<span style="color:#bbb;">0</span>';
+            return `<span class="badge badge-hoofd">${count}</span>`;
+        }
+
+        function classProgressBadge(zaak) {
+            const docCount = zaak._doc_count !== undefined ? zaak._doc_count
+                : (Array.isArray(zaak.documenten) ? zaak.documenten.length : 0);
+            const classified = zaak._classified_count || 0;
+            const approved = zaak._approved_count || 0;
+            const concept = zaak._concept_count || 0;
+
+            if (docCount === 0) return '<span style="color:#bbb;">-</span>';
+            if (classified === 0) return '<span style="color:#bbb;">Niet geclassificeerd</span>';
+
+            // Alle documenten goedgekeurd?
+            if (approved === docCount && docCount > 0) {
+                return `<span class="class-done-badge">\u2713 ${approved}/${docCount}</span>`;
+            }
+
+            // Progress bar segmenten
+            const approvedPct = docCount > 0 ? (approved / docCount) * 100 : 0;
+            const conceptPct = docCount > 0 ? (concept / docCount) * 100 : 0;
+            const nonePct = 100 - approvedPct - conceptPct;
+
+            return `<div class="class-progress">
+                <div class="class-progress-bar">
+                    <div class="seg-approved" style="width:${approvedPct}%"></div>
+                    <div class="seg-concept" style="width:${conceptPct}%"></div>
+                    <div class="seg-none" style="width:${nonePct}%"></div>
+                </div>
+                <span>${approved}/${docCount}</span>
+            </div>`;
+        }
+
+        function isViewable(mime) {
+            if (!mime) return false;
+            if (mime.includes('pdf')) return true;
+            if (mime.startsWith('image/')) return true;
+            if (mime.includes('text/')) return true;
+            return false;
+        }
+
+        function getDocIconClass(mime) {
+            if (!mime) return 'other';
+            if (mime.includes('pdf')) return 'pdf';
+            if (mime.includes('word') || mime.includes('document')) return 'doc';
+            if (mime.includes('excel') || mime.includes('spreadsheet')) return 'xls';
+            if (mime.includes('image')) return 'img';
+            return 'other';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function getDocIconLabel(mime) {
+            if (!mime) return '?';
+            if (mime.includes('pdf')) return 'PDF';
+            if (mime.includes('word') || mime.includes('document')) return 'DOC';
+            if (mime.includes('excel') || mime.includes('spreadsheet')) return 'XLS';
+            if (mime.includes('image/png')) return 'PNG';
+            if (mime.includes('image/jpeg') || mime.includes('image/jpg')) return 'JPG';
+            if (mime.includes('image')) return 'IMG';
+            return 'FILE';
+        }
+    </script>
+</body>
+</html>

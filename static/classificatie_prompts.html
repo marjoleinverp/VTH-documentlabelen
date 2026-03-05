@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificatie Prompts - Meierijstad</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; min-height: 100vh; }
+        .header { background: #24515F; color: white; padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
+        .header h1 { font-size: 1.5em; font-weight: 400; }
+        .header a { color: white; text-decoration: none; opacity: 0.8; }
+        .header a:hover { opacity: 1; }
+        .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+        .info-box { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 15px 20px; margin-bottom: 20px; border-radius: 4px; }
+        .info-box h3 { color: #1565c0; font-size: 1em; margin-bottom: 8px; }
+        .info-box p { color: #1565c0; font-size: 0.88em; line-height: 1.6; margin-bottom: 4px; }
+        .prompt-card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+        .prompt-card h3 { font-size: 1.1em; color: #24515F; margin-bottom: 4px; }
+        .prompt-card .description { font-size: 0.85em; color: #666; margin-bottom: 12px; }
+        .prompt-preview { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82em; line-height: 1.5; color: #555; max-height: 120px; overflow: hidden; position: relative; white-space: pre-wrap; word-break: break-word; }
+        .prompt-preview::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, #f8f9fa); }
+        .prompt-card .actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 12px; }
+        .prompt-card .status-msg { font-size: 0.85em; color: #4caf50; }
+        .prompt-card .status-msg.error { color: #f44336; }
+        .btn { padding: 8px 20px; border: none; border-radius: 6px; font-size: 0.9em; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #00A9E0; color: white; }
+        .btn-primary:hover { background: #0090c0; }
+        .btn-secondary { background: #e0e0e0; color: #333; }
+        .btn-secondary:hover { background: #d0d0d0; }
+        .placeholders { margin-top: 8px; font-size: 0.8em; color: #888; }
+        .placeholders code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.95em; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 12px; width: 90vw; max-width: 900px; height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #e0e0e0; }
+        .modal-header h2 { font-size: 1.2em; color: #24515F; font-weight: 500; }
+        .modal-header .modal-desc { font-size: 0.85em; color: #666; margin-top: 4px; }
+        .modal-close { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 4px; }
+        .modal-close:hover { background: #f0f0f0; color: #333; }
+        .modal-body { flex: 1; padding: 20px 24px; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-body textarea { flex: 1; width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.9em; line-height: 1.6; resize: none; }
+        .modal-body textarea:focus { outline: none; border-color: #00A9E0; box-shadow: 0 0 0 2px rgba(0,169,224,0.15); }
+        .modal-body .placeholders { margin-top: 10px; flex-shrink: 0; }
+        .modal-footer { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 16px 24px; border-top: 1px solid #e0e0e0; }
+        .modal-footer .status-msg { font-size: 0.85em; color: #4caf50; margin-right: auto; }
+        .modal-footer .status-msg.error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/static/leef_datashare.html">&larr; Terug</a>
+        <h1>Classificatie Prompts</h1>
+    </div>
+    <div class="container">
+        <div class="info-box">
+            <h3>Prompt Beheer</h3>
+            <p>Pas de AI-prompts aan die gebruikt worden voor automatische documentclassificatie. Wijzigingen worden direct toegepast (cache verloopt na 5 minuten).</p>
+        </div>
+        <div id="promptsContainer"><p style="color:#888; text-align:center; padding:40px;">Laden...</p></div>
+    </div>
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div><h2 id="modalTitle">Prompt bewerken</h2><div class="modal-desc" id="modalDesc"></div></div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="modalTextarea"></textarea>
+                <div class="placeholders" id="modalPlaceholders"></div>
+            </div>
+            <div class="modal-footer">
+                <span class="status-msg" id="modalStatus"></span>
+                <button class="btn btn-secondary" onclick="closeModal()">Annuleren</button>
+                <button class="btn btn-primary" id="modalSaveBtn" onclick="saveFromModal()">Opslaan</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const PROMPT_META = {
+            vision_prompt: { title: "Vision Prompt", description: "Wordt naar het vision-model gestuurd samen met de gerenderde PDF-pagina's. Beschrijft wat het model moet analyseren in de afbeelding.", placeholders: [] },
+            classificatie_prompt: { title: "Classificatie Prompt", description: "Hoofdprompt voor documentclassificatie. Bevat placeholders die automatisch worden ingevuld.", placeholders: ["{doc_naam}", "{tekst_preview}", "{image_section}", "{few_shot_section}", "{codes_met_omschrijving}"] },
+            system_message: { title: "System Message", description: "De LLM 'persona' / system message die bij elke classificatie-aanroep wordt meegestuurd.", placeholders: [] }
+        };
+        let promptData = {};
+        let currentEditKey = null;
+        async function loadPrompts() {
+            try {
+                const resp = await fetch('/geo/leef-datashare/prompts');
+                const data = await resp.json();
+                const items = data.items || [];
+                items.forEach(i => promptData[i.key] = i.value);
+                renderPrompts(items);
+            } catch (e) {
+                document.getElementById('promptsContainer').innerHTML = '<p style="color:#f44336;text-align:center;padding:40px;">Fout bij laden: ' + e.message + '</p>';
+            }
+        }
+        function renderPrompts(items) {
+            const container = document.getElementById('promptsContainer');
+            const order = ['vision_prompt', 'classificatie_prompt', 'system_message'];
+            const byKey = {};
+            items.forEach(i => byKey[i.key] = i);
+            let html = '';
+            const allKeys = [...order, ...items.map(i => i.key).filter(k => !order.includes(k))];
+            allKeys.forEach(key => {
+                const meta = PROMPT_META[key] || { title: key, description: 'Extra prompt', placeholders: [] };
+                const value = byKey[key] ? byKey[key].value : '';
+                html += `<div class="prompt-card" data-key="${key}"><h3>${meta.title}</h3><div class="description">${meta.description}</div><div class="prompt-preview" id="preview_${key}">${escapeHtml(value)}</div><div class="actions"><span class="status-msg" id="status_${key}"></span><button class="btn btn-primary" onclick="openModal('${key}')">Bewerken</button></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+        function openModal(key) {
+            currentEditKey = key;
+            const meta = PROMPT_META[key] || { title: key, description: '', placeholders: [] };
+            document.getElementById('modalTitle').textContent = meta.title + ' bewerken';
+            document.getElementById('modalDesc').textContent = meta.description;
+            document.getElementById('modalTextarea').value = promptData[key] || '';
+            document.getElementById('modalStatus').textContent = '';
+            const phEl = document.getElementById('modalPlaceholders');
+            if (meta.placeholders.length) { phEl.innerHTML = 'Placeholders: ' + meta.placeholders.map(p => '<code>' + p + '</code>').join(', '); phEl.style.display = 'block'; } else { phEl.style.display = 'none'; }
+            document.getElementById('editModal').classList.add('active');
+            setTimeout(() => document.getElementById('modalTextarea').focus(), 50);
+        }
+        function closeModal() { document.getElementById('editModal').classList.remove('active'); currentEditKey = null; }
+        async function saveFromModal() {
+            if (!currentEditKey) return;
+            const key = currentEditKey;
+            const value = document.getElementById('modalTextarea').value;
+            const statusEl = document.getElementById('modalStatus');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            statusEl.textContent = 'Opslaan...';
+            statusEl.className = 'status-msg';
+            saveBtn.disabled = true;
+            try {
+                const resp = await fetch('/geo/leef-datashare/prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: key, value: value }) });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                promptData[key] = value;
+                const previewEl = document.getElementById('preview_' + key);
+                if (previewEl) previewEl.textContent = value;
+                statusEl.textContent = 'Opgeslagen!';
+                const cardStatus = document.getElementById('status_' + key);
+                if (cardStatus) { cardStatus.textContent = 'Opgeslagen!'; setTimeout(() => { cardStatus.textContent = ''; }, 3000); }
+                setTimeout(() => closeModal(), 800);
+            } catch (e) { statusEl.textContent = 'Fout: ' + e.message; statusEl.className = 'status-msg error'; } finally { saveBtn.disabled = false; }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && currentEditKey) closeModal(); });
+        document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+        function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
+        loadPrompts();
+    </script>
+</body>
+</html>

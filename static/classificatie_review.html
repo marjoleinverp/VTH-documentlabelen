@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificatie Review - Meierijstad</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: #24515F;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .header h1 { font-size: 1.2em; font-weight: 400; }
+        .header a { color: white; text-decoration: none; opacity: 0.8; font-size: 0.9em; }
+        .header a:hover { opacity: 1; }
+        .header-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85em;
+        }
+        .zaak-info { opacity: 0.9; }
+
+        /* Zaak detail bar */
+        .zaak-detail-bar {
+            background: #f0f7fa;
+            border-bottom: 1px solid #d0e4ec;
+            padding: 10px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 24px;
+            flex-shrink: 0;
+            font-size: 0.82em;
+            color: #333;
+        }
+        .zaak-detail-bar .zaak-field {
+            display: flex;
+            gap: 4px;
+        }
+        .zaak-detail-bar .zaak-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .zaak-detail-bar .zaak-value {
+            color: #24515F;
+        }
+        .zaak-detail-bar .zaak-type-highlight {
+            background: #24515F;
+            color: white;
+            padding: 1px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Progress bar */
+        .progress-bar-container {
+            background: #1a3d48;
+            padding: 6px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.8);
+        }
+        .progress-track {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #4caf50;
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-text { white-space: nowrap; }
+
+        /* Main split layout */
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left: document preview */
+        .preview-panel {
+            flex: 0 0 65%;
+            background: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #ccc;
+        }
+        .preview-panel iframe, .preview-panel object {
+            flex: 1;
+            border: none;
+            background: white;
+            width: 100%;
+        }
+        .preview-panel img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            margin: auto;
+        }
+        .preview-empty {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            color: #888;
+            font-size: 1.1em;
+            text-align: center;
+            padding: 20px;
+        }
+        .preview-loading {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            color: #888;
+        }
+
+        /* Right: classification panel */
+        .classify-panel {
+            flex: 0 0 35%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+
+        .doc-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+        }
+        .doc-counter {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .doc-name {
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #333;
+            word-break: break-word;
+        }
+        .doc-mime {
+            font-size: 0.78em;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        /* Classification details */
+        .classify-details {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .classify-section {
+            margin-bottom: 20px;
+        }
+        .classify-section-label {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .classify-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .classify-badge-aanvraagformulier { background: #e8f5e9; color: #2e7d32; }
+        .classify-badge-bouwtekening { background: #e3f2fd; color: #1565c0; }
+        .classify-badge-situatieschets { background: #fff3e0; color: #e65100; }
+        .classify-badge-constructieberekening { background: #fce4ec; color: #c62828; }
+        .classify-badge-foto { background: #f3e5f5; color: #7b1fa2; }
+        .classify-badge-rapport { background: #e0f2f1; color: #00695c; }
+        .classify-badge-vergunning { background: #e8eaf6; color: #283593; }
+        .classify-badge-brief { background: #fff8e1; color: #f57f17; }
+        .classify-badge-plattegrond { background: #e1f5fe; color: #0277bd; }
+        .classify-badge-bijlage { background: #f5f5f5; color: #616161; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        .status-concept {
+            background: transparent;
+            border: 1.5px solid #ff9800;
+            color: #ff9800;
+        }
+        .status-goedgekeurd {
+            background: #4caf50;
+            color: white;
+        }
+
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .confidence-track {
+            width: 100px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .confidence-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        /* Dropdown (legacy, hidden) */
+        .classify-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9em;
+            background: white;
+            cursor: pointer;
+            display: none;
+        }
+        .classify-select:focus {
+            outline: none;
+            border-color: #00A9E0;
+            box-shadow: 0 0 0 2px rgba(0,169,224,0.15);
+        }
+
+        /* Checkbox checklist voor multi-label */
+        .classify-checklist {
+            max-height: 260px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+        }
+        .classify-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .classify-checklist-item:last-child { border-bottom: none; }
+        .classify-checklist-item:hover { background: #f0f7ff; }
+        .classify-checklist-item.checked { background: #e8f5e9; }
+        .classify-checklist-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #4caf50;
+        }
+        .classify-checklist-label {
+            flex: 1;
+            line-height: 1.3;
+        }
+        .classify-checklist-code {
+            font-size: 0.72em;
+            color: #999;
+        }
+
+        /* Multi-label badges */
+        .multi-badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        /* Edit modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 520px;
+            max-width: 95vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h2 {
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #333;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.4em;
+            cursor: pointer;
+            color: #999;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .modal-close:hover { background: #f0f0f0; color: #333; }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body .field-group {
+            margin-bottom: 16px;
+        }
+        .modal-body .field-label {
+            font-size: 0.78em;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .modal-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        .modal-btn-primary {
+            background: #4caf50;
+            color: white;
+        }
+        .modal-btn-primary:hover { background: #388e3c; }
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #555;
+        }
+        .modal-btn-cancel:hover { background: #d0d0d0; }
+
+        /* Btn edit in action bar */
+        .btn-edit {
+            background: white;
+            color: #00A9E0;
+            border: 1.5px solid #00A9E0;
+        }
+        .btn-edit:hover { background: #e3f2fd; }
+
+        /* Action buttons */
+        .action-buttons {
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+        .btn-approve {
+            background: #4caf50;
+            color: white;
+        }
+        .btn-approve:hover { background: #388e3c; }
+        .btn-approve:disabled { background: #bdbdbd; cursor: not-allowed; }
+        .btn-skip {
+            background: #e0e0e0;
+            color: #555;
+        }
+        .btn-skip:hover { background: #d0d0d0; }
+
+        /* Navigation */
+        .nav-buttons {
+            padding: 10px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: #fafafa;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.15s;
+        }
+        .nav-btn:hover:not(:disabled) {
+            border-color: #00A9E0;
+            color: #00A9E0;
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .nav-hint {
+            font-size: 0.72em;
+            color: #aaa;
+        }
+
+        /* Document list sidebar */
+        .doc-list-section {
+            border-top: 1px solid #eee;
+            max-height: 180px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .doc-list-item {
+            padding: 8px 20px;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.1s;
+        }
+        .doc-list-item:hover { background: #f0f7ff; }
+        .doc-list-item.active { background: #e3f2fd; font-weight: 600; }
+        .doc-list-item.done { color: #4caf50; }
+        .doc-list-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .doc-list-icon.pending { background: #ff9800; }
+        .doc-list-icon.goedgekeurd { background: #4caf50; }
+        .doc-list-icon.none { background: #ddd; }
+        .doc-list-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        /* Loading state */
+        .loading-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            color: #888;
+        }
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #00A9E0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c62828;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Classify button */
+        .btn-classify {
+            background: #00A9E0;
+            color: white;
+            font-size: 1em;
+        }
+        .btn-classify:hover { background: #0088b3; }
+        .btn-classify:disabled { background: #bdbdbd; cursor: not-allowed; color: white; }
+        .btn-reclassify {
+            background: white;
+            color: #00A9E0;
+            border: 1.5px solid #00A9E0;
+        }
+        .btn-reclassify:hover { background: #e3f2fd; }
+        /* LLM reasoning */
+        .llm-response-box {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 0.82em;
+            color: #555;
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        /* Feedback field */
+        .feedback-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.85em;
+            resize: vertical;
+            min-height: 50px;
+        }
+        .feedback-input:focus {
+            outline: none;
+            border-color: #00A9E0;
+            box-shadow: 0 0 0 2px rgba(0,169,224,0.15);
+        }
+        .feedback-hint {
+            font-size: 0.72em;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .leef-label-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.78em;
+            font-weight: 600;
+            background: #e8eaf6;
+            color: #283593;
+            margin: 2px;
+        }
+        .leef-labels-empty {
+            font-size: 0.82em;
+            color: #aaa;
+            font-style: italic;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="/static/leef_datashare.html">&larr; Terug naar overzicht</a>
+        <h1>Classificatie Review</h1>
+        <div class="header-right">
+            <span class="zaak-info" id="zaakInfo"></span>
+        </div>
+    </div>
+
+    <!-- Zaak detail bar -->
+    <div class="zaak-detail-bar" id="zaakDetailBar" style="display:none;">
+        <div class="zaak-field">
+            <span class="zaak-label">Vergunning:</span>
+            <span class="zaak-type-highlight" id="zaakTypeLabel">-</span>
+        </div>
+        <div class="zaak-field">
+            <span class="zaak-label">Omschrijving:</span>
+            <span class="zaak-value" id="zaakOmschrijving">-</span>
+        </div>
+        <div class="zaak-field">
+            <span class="zaak-label">Locatie:</span>
+            <span class="zaak-value" id="zaakLocatie">-</span>
+        </div>
+        <div class="zaak-field">
+            <span class="zaak-label">Datum aanvraag:</span>
+            <span class="zaak-value" id="zaakDatum">-</span>
+        </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-bar-container" id="progressBar" style="display:none;">
+        <span class="progress-text" id="progressText">0/0 goedgekeurd</span>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%;"></div>
+        </div>
+        <span class="progress-text" id="progressPct">0%</span>
+    </div>
+
+    <!-- Main content -->
+    <div class="main" id="mainContent" style="display:none;">
+        <!-- Left: preview -->
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-empty" id="previewEmpty">Selecteer een document om te bekijken</div>
+        </div>
+
+        <!-- Right: classification -->
+        <div class="classify-panel">
+            <!-- Doc header -->
+            <div class="doc-header">
+                <div class="doc-counter" id="docCounter">Document 0/0</div>
+                <div class="doc-name" id="docName">-</div>
+                <div class="doc-mime" id="docMime"></div>
+            </div>
+
+            <!-- Classification details -->
+            <div class="classify-details" id="classifyDetails">
+                <!-- Classify button -->
+                <div class="classify-section" id="classifyBtnSection">
+                    <button class="btn btn-classify" id="btnClassify" onclick="classificeerDocument()" style="width:100%;padding:12px;">
+                        Classificeer dit document
+                    </button>
+                </div>
+
+                <div class="classify-section">
+                    <div class="classify-section-label">Huidige classificatie</div>
+                    <div id="currentBadge">
+                        <span style="color:#aaa;font-size:0.9em;">Nog niet geclassificeerd</span>
+                    </div>
+                    <div class="confidence-row" id="confidenceRow" style="display:none;">
+                        <span class="confidence-label">Confidence:</span>
+                        <div class="confidence-track">
+                            <div class="confidence-fill" id="confidenceFill" style="width:0%;background:#4caf50;"></div>
+                        </div>
+                        <span class="confidence-label" id="confidenceValue">0%</span>
+                    </div>
+                </div>
+
+                <!-- Samenvatting -->
+                <div class="classify-section" id="samenvattingSection" style="display:none;">
+                    <div class="classify-section-label">Samenvatting</div>
+                    <div class="llm-response-box" id="samenvattingText" style="background:#f0f7ff;border-color:#bbdefb;color:#333;"></div>
+                </div>
+
+                <!-- Omschrijving -->
+                <div class="classify-section" id="omschrijvingSection" style="display:none;">
+                    <div class="classify-section-label">Omschrijving</div>
+                    <div class="llm-response-box" id="omschrijvingText" style="background:#f0faf0;border-color:#c8e6c9;color:#333;"></div>
+                </div>
+
+                <!-- Toelichting -->
+                <div class="classify-section" id="toelichtingSection" style="display:none;">
+                    <div class="classify-section-label">Toelichting</div>
+                    <div class="llm-response-box" id="toelichtingText" style="background:#fff8e1;border-color:#ffe082;color:#333;"></div>
+                </div>
+
+                <!-- LLM reasoning -->
+                <div class="classify-section" id="llmSection" style="display:none;">
+                    <div class="classify-section-label">LLM Redenering</div>
+                    <div class="llm-response-box" id="llmResponse"></div>
+                </div>
+
+                <!-- Image description -->
+                <div class="classify-section" id="imageDescSection" style="display:none;">
+                    <div class="classify-section-label">Visuele analyse</div>
+                    <div class="llm-response-box" id="imageDescription"></div>
+                </div>
+
+                <!-- LEEF labels -->
+                <div class="classify-section" id="leefLabelsSection" style="display:none;">
+                    <div class="classify-section-label">LEEF Labels</div>
+                    <div id="leefLabelsContent" class="multi-badge-row"></div>
+                </div>
+
+                <!-- Hidden legacy select for backward compat -->
+                <select class="classify-select" id="classifySelect" style="display:none;">
+                    <option value="">-- Kies classificatie --</option>
+                </select>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-approve" id="btnApprove" onclick="goedkeuren()">Goedkeuren</button>
+                <button class="btn btn-edit" id="btnEdit" onclick="openEditModal()">Bewerken</button>
+                <button class="btn btn-skip" id="btnSkip" onclick="skipDocument()">Skip</button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button class="nav-btn" id="btnPrev" onclick="navigeer(-1)" disabled>&larr; Vorige</button>
+                <span class="nav-hint">Pijltjes = navigeer | Ctrl+Enter = goedkeuren</span>
+                <button class="nav-btn" id="btnNext" onclick="navigeer(1)">Volgende &rarr;</button>
+            </div>
+
+            <!-- Document list -->
+            <div class="doc-list-section" id="docListSection"></div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" id="loadingState">
+        <div class="loading-spinner"></div>
+        <div>Review data laden...</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-state" id="errorState" style="display:none;"></div>
+
+    <!-- Edit modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Classificatie bewerken</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <div class="field-label">Classificaties (meerdere mogelijk)</div>
+                    <div class="classify-checklist" id="modalChecklist"></div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">Reden / feedback (optioneel)</div>
+                    <textarea class="feedback-input" id="modalFeedbackInput" placeholder="Waarom past deze categorie beter? Beschrijf herkenbare kenmerken."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Annuleren</button>
+                <button class="modal-btn modal-btn-primary" onclick="saveEditModal()">Opslaan &amp; goedkeuren</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // State
+        let reviewData = null;
+        let currentIndex = 0;
+        let classifyCodes = [];
+        let originalCode = '';  // Track original code for feedback detection
+
+        const zaakId = new URLSearchParams(window.location.search).get('zaak_id');
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!zaakId) {
+                showError('Geen zaak_id opgegeven in URL');
+                return;
+            }
+            loadReviewData();
+            setupKeyboard();
+        });
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                // Don't interfere with select dropdowns or textareas
+                if (e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigeer(-1);
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigeer(1);
+                } else if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    goedkeuren();
+                }
+            });
+        }
+
+        async function loadReviewData() {
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/review`);
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${resp.status}`);
+                }
+                reviewData = await resp.json();
+                classifyCodes = reviewData.classificatie_codes || [];
+
+                // Populate legacy dropdown (hidden)
+                const select = document.getElementById('classifySelect');
+                select.innerHTML = '<option value="">-- Kies classificatie --</option>';
+                classifyCodes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = `${c.label} - ${c.omschrijving || ''}`;
+                    select.appendChild(opt);
+                });
+
+                // Populate modal checklist for multi-label
+                const checklist = document.getElementById('modalChecklist');
+                checklist.innerHTML = classifyCodes.map(c => `
+                    <label class="classify-checklist-item" data-code="${esc(c.code)}">
+                        <input type="checkbox" value="${esc(c.code)}" onchange="onChecklistChange()">
+                        <span class="classify-checklist-label">${esc(c.label)}<br><span class="classify-checklist-code">${esc(c.omschrijving || '')}</span></span>
+                    </label>
+                `).join('');
+
+                // Set zaak info
+                const zaak = reviewData.zaak || {};
+                document.getElementById('zaakInfo').textContent =
+                    `${zaak.intern_kenmerk || ''} - ${zaak.zaak_omschrijving || ''}`;
+
+                // Zaak detail bar
+                const typeLabel = zaak.zaaktype_omschrijving || zaak.type_vergunning || zaak.zaaktype || '-';
+                document.getElementById('zaakTypeLabel').textContent = typeLabel;
+                document.getElementById('zaakOmschrijving').textContent = zaak.zaak_omschrijving || '-';
+                document.getElementById('zaakLocatie').textContent = zaak.locatie || '-';
+                document.getElementById('zaakDatum').textContent = zaak.datum_aanvraag || '-';
+                document.getElementById('zaakDetailBar').style.display = 'flex';
+
+                // Show UI
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+                document.getElementById('progressBar').style.display = 'flex';
+
+                updateProgress();
+                renderDocList();
+                showDocument(0);
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function showDocument(index) {
+            const docs = reviewData.documenten || [];
+            if (index < 0 || index >= docs.length) return;
+            currentIndex = index;
+
+            const doc = docs[index];
+            const cls = doc.classificatie;
+
+            // Counter
+            document.getElementById('docCounter').textContent = `Document ${index + 1} / ${docs.length}`;
+            document.getElementById('docName').textContent = doc.naam;
+            document.getElementById('docMime').textContent = (doc.mime_type || '') + (doc.id ? ` \u00b7 LEEF #${doc.id}` : '');
+
+            // Preview: toon document op basis van mime type
+            const previewPanel = document.getElementById('previewPanel');
+            const mime = (doc.mime_type || '').toLowerCase();
+            const docUrl = `/geo/leef-datashare/documenten/${doc.id}?inline=true`;
+
+            // Loading state tonen
+            previewPanel.innerHTML = `<div class="preview-loading"><div class="loading-spinner"></div><div>Document laden...</div></div>`;
+
+            if (mime.includes('pdf')) {
+                const iframe = document.createElement('iframe');
+                iframe.src = docUrl;
+                iframe.onerror = () => { previewPanel.innerHTML = buildFallbackPreview(doc, 'PDF kon niet geladen worden'); };
+                previewPanel.innerHTML = '';
+                previewPanel.appendChild(iframe);
+            } else if (mime.startsWith('image/')) {
+                previewPanel.innerHTML = `<img src="${docUrl}" alt="${esc(doc.naam)}" onerror="this.parentElement.innerHTML=buildFallbackPreview(null,'Afbeelding kon niet geladen worden')">`;
+            } else if (mime.includes('word') || mime.includes('document') || mime.includes('excel') || mime.includes('spreadsheet') || mime.includes('powerpoint') || mime.includes('presentation')) {
+                previewPanel.innerHTML = buildOfficePreview(doc);
+            } else if (mime.includes('text/') || mime.includes('xml') || mime.includes('json') || mime.includes('csv')) {
+                loadTextPreview(doc.id, previewPanel);
+            } else {
+                previewPanel.innerHTML = buildFallbackPreview(doc, null);
+            }
+
+            // Classification badge + status (multi-label aware)
+            const badgeEl = document.getElementById('currentBadge');
+            const confRow = document.getElementById('confidenceRow');
+            const samenvattingSection = document.getElementById('samenvattingSection');
+            const omschrijvingSection = document.getElementById('omschrijvingSection');
+            const toelichtingSection = document.getElementById('toelichtingSection');
+            const llmSection = document.getElementById('llmSection');
+            const imageDescSection = document.getElementById('imageDescSection');
+            const classifyBtnSection = document.getElementById('classifyBtnSection');
+            const btnClassify = document.getElementById('btnClassify');
+
+            // Reset modal state (will be populated on open)
+
+            // Multi-label: get all classifications for this document
+            const clsList = doc.classificaties || (cls ? [cls] : []);
+            const hasClassifications = clsList.length > 0;
+
+            if (hasClassifications) {
+                const firstCls = clsList[0];
+                const allApproved = clsList.every(c => c.status === 'goedgekeurd');
+                const hasConcepten = clsList.some(c => (c.status || 'concept') === 'concept');
+
+                // Show multi-label badges
+                const badgesHtml = clsList.map(c => {
+                    const code = c.classificatie_code || 'bijlage';
+                    const label = c.classificatie_label || code;
+                    const status = c.status || 'concept';
+                    return `<span class="classify-badge classify-badge-${esc(code)}">${esc(label)}</span>
+                            <span class="status-badge status-${esc(status)}">${status === 'goedgekeurd' ? '\u2713' : status}</span>`;
+                }).join(' ');
+                badgeEl.innerHTML = `<div class="multi-badge-row">${badgesHtml}</div>`;
+
+                const conf = Math.round((firstCls.confidence || 0) * 100);
+                confRow.style.display = 'flex';
+                const fill = document.getElementById('confidenceFill');
+                fill.style.width = conf + '%';
+                fill.style.background = conf >= 70 ? '#4caf50' : conf >= 40 ? '#ff9800' : '#e53935';
+                document.getElementById('confidenceValue').textContent = conf + '%';
+
+                // Track current codes for change detection
+                const currentCodes = clsList.map(c => c.classificatie_code);
+                originalCode = currentCodes.join(',');
+                document.getElementById('classifySelect').value = currentCodes[0] || '';
+
+                // Samenvatting
+                if (firstCls.samenvatting) {
+                    samenvattingSection.style.display = 'block';
+                    document.getElementById('samenvattingText').textContent = firstCls.samenvatting;
+                } else {
+                    samenvattingSection.style.display = 'none';
+                }
+
+                // Omschrijving
+                if (firstCls.omschrijving) {
+                    omschrijvingSection.style.display = 'block';
+                    document.getElementById('omschrijvingText').textContent = firstCls.omschrijving;
+                } else {
+                    omschrijvingSection.style.display = 'none';
+                }
+
+                // Toelichting
+                if (firstCls.toelichting) {
+                    toelichtingSection.style.display = 'block';
+                    document.getElementById('toelichtingText').textContent = firstCls.toelichting;
+                } else {
+                    toelichtingSection.style.display = 'none';
+                }
+
+                // LLM response
+                if (firstCls.llm_response) {
+                    llmSection.style.display = 'block';
+                    document.getElementById('llmResponse').textContent = firstCls.llm_response;
+                } else {
+                    llmSection.style.display = 'none';
+                }
+
+                // Image description
+                if (firstCls.image_description) {
+                    imageDescSection.style.display = 'block';
+                    document.getElementById('imageDescription').textContent = firstCls.image_description;
+                } else {
+                    imageDescSection.style.display = 'none';
+                }
+
+                // Classify button state
+                if (allApproved) {
+                    classifyBtnSection.style.display = 'none';
+                } else {
+                    classifyBtnSection.style.display = 'block';
+                    btnClassify.textContent = 'Herclassificeer';
+                    btnClassify.className = 'btn btn-reclassify';
+                    btnClassify.disabled = false;
+                }
+
+                // Approve button
+                const btnApprove = document.getElementById('btnApprove');
+                if (allApproved) {
+                    btnApprove.textContent = 'Al goedgekeurd';
+                    btnApprove.disabled = true;
+                } else {
+                    btnApprove.textContent = 'Goedkeuren';
+                    btnApprove.disabled = false;
+                }
+            } else {
+                badgeEl.innerHTML = '<span style="color:#aaa;font-size:0.9em;">Nog niet geclassificeerd</span>';
+                confRow.style.display = 'none';
+                samenvattingSection.style.display = 'none';
+                omschrijvingSection.style.display = 'none';
+                toelichtingSection.style.display = 'none';
+                llmSection.style.display = 'none';
+                imageDescSection.style.display = 'none';
+                document.getElementById('classifySelect').value = '';
+                originalCode = '';
+
+                // Show prominent classify button
+                classifyBtnSection.style.display = 'block';
+                btnClassify.textContent = 'Classificeer dit document';
+                btnClassify.className = 'btn btn-classify';
+                btnClassify.disabled = false;
+
+                document.getElementById('btnApprove').textContent = 'Goedkeuren';
+                document.getElementById('btnApprove').disabled = true;
+            }
+
+            // Haal LEEF labels op voor dit document
+            loadLeefLabels(doc.id);
+
+            // Nav buttons
+            document.getElementById('btnPrev').disabled = index <= 0;
+            document.getElementById('btnNext').disabled = index >= docs.length - 1;
+
+            // Highlight in doc list
+            document.querySelectorAll('.doc-list-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+        }
+
+        function onChecklistChange() {
+            const exclusive = ['niet_relevant', 'vervallen'];
+            // Toggle visual checked state
+            document.querySelectorAll('#modalChecklist input[type="checkbox"]').forEach(cb => {
+                cb.closest('.classify-checklist-item').classList.toggle('checked', cb.checked);
+            });
+
+            // Enforce exclusivity: als niet_relevant/vervallen is aangevinkt, uncheck de rest
+            const lastChanged = event && event.target ? event.target : null;
+            if (lastChanged && lastChanged.checked) {
+                const val = lastChanged.value;
+                if (exclusive.includes(val)) {
+                    // Uncheck alle andere
+                    document.querySelectorAll('#modalChecklist input[type="checkbox"]').forEach(cb => {
+                        if (cb.value !== val) {
+                            cb.checked = false;
+                            cb.closest('.classify-checklist-item').classList.remove('checked');
+                        }
+                    });
+                } else {
+                    // Uncheck exclusieve codes
+                    exclusive.forEach(code => {
+                        const cb = document.querySelector(`#modalChecklist input[value="${code}"]`);
+                        if (cb) {
+                            cb.checked = false;
+                            cb.closest('.classify-checklist-item').classList.remove('checked');
+                        }
+                    });
+                }
+            }
+        }
+
+        function getCheckedCodes() {
+            const codes = [];
+            document.querySelectorAll('#modalChecklist input[type="checkbox"]:checked').forEach(cb => {
+                codes.push(cb.value);
+            });
+            return codes;
+        }
+
+        function openEditModal() {
+            const docs = reviewData.documenten || [];
+            const doc = docs[currentIndex];
+            if (!doc) return;
+
+            // Reset checkboxes
+            document.querySelectorAll('#modalChecklist input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.classify-checklist-item').classList.remove('checked');
+            });
+
+            // Pre-check current labels
+            const clsList = doc.classificaties || (doc.classificatie ? [doc.classificatie] : []);
+            clsList.forEach(c => {
+                const cb = document.querySelector(`#modalChecklist input[value="${c.classificatie_code}"]`);
+                if (cb) {
+                    cb.checked = true;
+                    cb.closest('.classify-checklist-item').classList.add('checked');
+                }
+            });
+
+            // Reset feedback
+            document.getElementById('modalFeedbackInput').value = '';
+
+            // Show modal
+            document.getElementById('editModal').classList.add('visible');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('visible');
+        }
+
+        async function saveEditModal() {
+            const codes = getCheckedCodes();
+            if (codes.length === 0) {
+                showToast('Selecteer minimaal 1 classificatie');
+                return;
+            }
+
+            const docs = reviewData.documenten || [];
+            const doc = docs[currentIndex];
+            if (!doc) return;
+
+            const reden = (document.getElementById('modalFeedbackInput').value || '').trim();
+            closeEditModal();
+
+            await wijzigClassificatie(doc.id, null, codes, reden);
+        }
+
+        async function classificeerDocument() {
+            const docs = reviewData.documenten || [];
+            const doc = docs[currentIndex];
+            if (!doc) return;
+
+            const btn = document.getElementById('btnClassify');
+            const prevText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span>Bezig met classificeren...';
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificeer/${doc.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${resp.status}`);
+                }
+                const result = await resp.json();
+
+                // Update local state (multi-label)
+                const codes = result.classificatie_codes || [result.classificatie_code];
+                const labels = result.classificatie_labels || [result.classificatie_label];
+                doc.classificaties = codes.map((code, i) => ({
+                    document_id: doc.id,
+                    classificatie_code: code,
+                    classificatie_label: labels[i] || code,
+                    confidence: result.confidence,
+                    status: result.status || 'concept',
+                    llm_response: result.llm_response,
+                    samenvatting: result.samenvatting,
+                    omschrijving: result.omschrijving,
+                    toelichting: result.toelichting,
+                    image_description: result.image_description,
+                }));
+                doc.classificatie = doc.classificaties[0]; // backward compat
+
+                updateProgress();
+                renderDocList();
+                showDocument(currentIndex);
+                showToast('Document geclassificeerd!');
+            } catch (err) {
+                showToast('Classificatie mislukt: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = prevText;
+            }
+        }
+
+        async function loadLeefLabels(docId) {
+            const section = document.getElementById('leefLabelsSection');
+            const content = document.getElementById('leefLabelsContent');
+            section.style.display = 'none';
+            content.innerHTML = '';
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/documenten/${docId}/metadata`);
+                if (!resp.ok) return;
+                const meta = await resp.json();
+                console.log('LEEF metadata response:', JSON.stringify(meta));
+
+                // LEEF response: { items: [{ labels: [{ label_tekst: "..." }] }] }
+                const item = (meta.items && meta.items.length > 0) ? meta.items[0] : meta;
+                const labels = item.labels || [];
+
+                section.style.display = 'block';
+                if (labels.length === 0) {
+                    content.innerHTML = '<span class="leef-labels-empty">Geen labels in LEEF</span>';
+                    return;
+                }
+                content.innerHTML = labels.map(l => {
+                    const text = typeof l === 'string' ? l : (l.label_tekst || l.label || l.naam || JSON.stringify(l));
+                    return `<span class="leef-label-badge">${esc(text)}</span>`;
+                }).join('');
+            } catch (e) {
+                // Stille fout - LEEF labels sectie verbergen
+                console.warn('LEEF labels laden mislukt:', e);
+            }
+        }
+
+        function navigeer(delta) {
+            const newIndex = currentIndex + delta;
+            const docs = reviewData.documenten || [];
+            if (newIndex >= 0 && newIndex < docs.length) {
+                showDocument(newIndex);
+            }
+        }
+
+        async function goedkeuren() {
+            const docs = reviewData.documenten || [];
+            const doc = docs[currentIndex];
+            if (!doc) return;
+
+            const labels = doc.classificaties || (doc.classificatie ? [doc.classificatie] : []);
+            if (labels.length === 0) {
+                showToast('Document is nog niet geclassificeerd');
+                return;
+            }
+
+            const allApproved = labels.every(c => c && c.status === 'goedgekeurd');
+            if (allApproved) return;
+
+            // Goedkeuren
+            const btn = document.getElementById('btnApprove');
+            btn.disabled = true;
+            btn.textContent = 'Bezig...';
+
+            try {
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificaties/goedkeuren`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ document_ids: [doc.id] }),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const respData = await resp.json();
+
+                // Update local state (multi-label: mark all labels as approved)
+                if (doc.classificaties) {
+                    doc.classificaties.forEach(c => c.status = 'goedgekeurd');
+                }
+                if (doc.classificatie) {
+                    doc.classificatie.status = 'goedgekeurd';
+                }
+
+                updateProgress();
+                renderDocList();
+                showDocument(currentIndex);
+
+                // LEEF labels feedback
+                const leefResult = respData.leef_labels;
+                if (leefResult && leefResult.success && leefResult.success.length > 0 && leefResult.failed.length === 0) {
+                    showToast('Goedgekeurd en labels naar LEEF verstuurd!');
+                } else if (leefResult && leefResult.failed && leefResult.failed.length > 0) {
+                    showToast('Goedgekeurd! Labels naar LEEF versturen mislukt.');
+                } else {
+                    showToast('Goedgekeurd!');
+                }
+
+                // Auto-advance after 500ms
+                setTimeout(() => {
+                    if (currentIndex < docs.length - 1) {
+                        showDocument(currentIndex + 1);
+                    }
+                }, 500);
+            } catch (err) {
+                showToast('Goedkeuren mislukt: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Goedkeuren';
+            }
+        }
+
+        async function wijzigClassificatie(docId, newCode, newCodes, redenParam) {
+            const reden = redenParam !== undefined ? redenParam : (document.getElementById('modalFeedbackInput').value || '').trim();
+            try {
+                // Multi-label: use codes list, fallback to single code
+                const codes = newCodes || (newCode ? [newCode] : getCheckedCodes());
+                if (codes.length === 0) {
+                    showToast('Selecteer minimaal 1 classificatie');
+                    return;
+                }
+                const body = { classificatie_codes: codes };
+                if (reden) body.reden = reden;
+
+                const resp = await fetch(`/geo/leef-datashare/zaken/${zaakId}/classificaties/${docId}/wijzig`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const wijzigData = await resp.json();
+
+                // Update local state (multi-label)
+                const doc = (reviewData.documenten || [])[currentIndex];
+                if (doc) {
+                    doc.classificaties = codes.map(code => {
+                        const cat = classifyCodes.find(c => c.code === code);
+                        return {
+                            document_id: docId,
+                            classificatie_code: code,
+                            classificatie_label: cat ? cat.label : code,
+                            confidence: 1.0,
+                            status: 'goedgekeurd',
+                        };
+                    });
+                    doc.classificatie = doc.classificaties[0]; // backward compat
+                }
+
+                updateProgress();
+                renderDocList();
+                showDocument(currentIndex);
+
+                // LEEF labels feedback
+                const leefWijzig = wijzigData.leef_labels;
+                if (leefWijzig && leefWijzig.success && leefWijzig.success.length > 0 && leefWijzig.failed.length === 0) {
+                    showToast(reden ? 'Classificatie gewijzigd + labels naar LEEF verstuurd!' : 'Classificatie gewijzigd en labels naar LEEF verstuurd!');
+                } else if (leefWijzig && leefWijzig.failed && leefWijzig.failed.length > 0) {
+                    showToast(reden ? 'Classificatie gewijzigd! Labels naar LEEF versturen mislukt.' : 'Gewijzigd! Labels naar LEEF versturen mislukt.');
+                } else {
+                    showToast(reden ? 'Classificatie gewijzigd + feedback opgeslagen' : 'Classificatie gewijzigd en goedgekeurd');
+                }
+
+                // Auto-advance
+                const docs = reviewData.documenten || [];
+                setTimeout(() => {
+                    if (currentIndex < docs.length - 1) {
+                        showDocument(currentIndex + 1);
+                    }
+                }, 500);
+            } catch (err) {
+                showToast('Wijzigen mislukt: ' + err.message);
+            }
+        }
+
+        function skipDocument() {
+            const docs = reviewData.documenten || [];
+            if (currentIndex < docs.length - 1) {
+                showDocument(currentIndex + 1);
+            }
+        }
+
+        function updateProgress() {
+            const docs = reviewData.documenten || [];
+            const total = docs.length;
+            // Document is goedgekeurd als ALLE labels goedgekeurd zijn
+            const approved = docs.filter(d => {
+                const labels = d.classificaties || (d.classificatie ? [d.classificatie] : []);
+                return labels.length > 0 && labels.every(l => l.status === 'goedgekeurd');
+            }).length;
+            const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
+
+            document.getElementById('progressText').textContent = `${approved}/${total} goedgekeurd`;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressPct').textContent = pct + '%';
+        }
+
+        function renderDocList() {
+            const docs = reviewData.documenten || [];
+            const container = document.getElementById('docListSection');
+            container.innerHTML = docs.map((doc, i) => {
+                const labels = doc.classificaties || (doc.classificatie ? [doc.classificatie] : []);
+                const hasLabels = labels.length > 0;
+                const allApproved = hasLabels && labels.every(l => l.status === 'goedgekeurd');
+                const statusClass = allApproved ? 'goedgekeurd' : (hasLabels ? 'pending' : 'none');
+                const activeClass = i === currentIndex ? 'active' : '';
+                const doneClass = allApproved ? 'done' : '';
+                return `
+                    <div class="doc-list-item ${activeClass} ${doneClass}" onclick="showDocument(${i})">
+                        <span class="doc-list-icon ${statusClass}"></span>
+                        <span class="doc-list-name" title="${esc(doc.naam)}">${esc(doc.naam)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showError(msg) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'flex';
+            document.getElementById('errorState').textContent = 'Fout: ' + msg;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function esc(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function buildFallbackPreview(doc, errorMsg) {
+            const naam = doc ? esc(doc.naam) : 'Document';
+            const mime = doc ? esc(doc.mime_type || '') : '';
+            const downloadUrl = doc ? `/geo/leef-datashare/documenten/${doc.id}` : '#';
+            return `<div class="preview-empty">
+                ${errorMsg ? `<div style="color:#c62828;margin-bottom:8px;">${esc(errorMsg)}</div>` : ''}
+                <div style="font-size:3em;opacity:0.3;">&#128196;</div>
+                <div><strong>${naam}</strong></div>
+                <div style="font-size:0.8em;color:#aaa;">${mime}</div>
+                <a href="${downloadUrl}" target="_blank"
+                   style="margin-top:8px;padding:10px 24px;background:#00A9E0;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                    Download bestand
+                </a>
+            </div>`;
+        }
+
+        function buildOfficePreview(doc) {
+            const ext = (doc.naam || '').split('.').pop().toLowerCase();
+            const icons = { doc: '&#128209;', docx: '&#128209;', xls: '&#128202;', xlsx: '&#128202;', ppt: '&#128218;', pptx: '&#128218;' };
+            const icon = icons[ext] || '&#128196;';
+            return `<div class="preview-empty">
+                <div style="font-size:3em;opacity:0.4;">${icon}</div>
+                <div><strong>${esc(doc.naam)}</strong></div>
+                <div style="font-size:0.85em;color:#888;max-width:400px;">
+                    Dit bestandstype kan niet direct in de browser getoond worden.
+                </div>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                    <a href="/geo/leef-datashare/documenten/${doc.id}" target="_blank"
+                       style="padding:10px 24px;background:#00A9E0;color:white;border-radius:6px;text-decoration:none;font-weight:600;">
+                        Download
+                    </a>
+                    <a href="/geo/leef-datashare/documenten/${doc.id}?inline=true" target="_blank"
+                       style="padding:10px 24px;background:white;color:#00A9E0;border:1px solid #00A9E0;border-radius:6px;text-decoration:none;font-weight:600;">
+                        Open in nieuw tabblad
+                    </a>
+                </div>
+            </div>`;
+        }
+
+        async function loadTextPreview(docId, container) {
+            try {
+                const resp = await fetch(`/geo/leef-datashare/documenten/${docId}?inline=true`);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const text = await resp.text();
+                container.innerHTML = `<pre style="flex:1;overflow:auto;padding:20px;margin:0;font-size:0.85em;background:white;white-space:pre-wrap;word-break:break-word;">${esc(text.substring(0, 50000))}</pre>`;
+            } catch (e) {
+                container.innerHTML = buildFallbackPreview(null, 'Tekst kon niet geladen worden');
+            }
+        }
+    </script>
+</body>
+</html>
